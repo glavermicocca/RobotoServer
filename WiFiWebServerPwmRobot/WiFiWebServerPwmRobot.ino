@@ -24,6 +24,9 @@ const char* password = "Mittelabsuperpassword";
 #define D6 12
 #define D7 13
 
+const int button = D2;
+int buttonState = 0;
+
 // Create an instance of the server
 // specify the port to listen on as an argument
 WiFiServer server(80);
@@ -60,11 +63,32 @@ void setup() {
 
   ESP.wdtDisable();
   ESP.wdtEnable(WDTO_8S);
+
+  pinMode(D2, INPUT);
 }
 
 int globale = 0;
+int differenza = 50;
 
 void loop() {
+
+  int value = digitalRead(D2);    // Read state of PushButton
+  if (value == HIGH) {
+     if(differenza != 0) //sono fermo
+     {
+       Serial.println("HIGHT");
+       differenza++;
+       Serial.println(differenza);
+     }
+  } else {
+    if(differenza != 0) //sono fermo
+    {
+       Serial.println("LOW");
+       differenza--;
+       Serial.println(differenza);
+    }
+  }
+  
   // Check if a client has connected
   WiFiClient client = server.available();
   if (!client) {
@@ -112,6 +136,7 @@ void loop() {
     client.print(s);
     client.stop();
     delay(1);
+    differenza = 0;
     return;
   }
   else if (req.indexOf("/gpio/up") != -1) {
@@ -130,6 +155,7 @@ void loop() {
     client.flush();
     // Send the response to the client
     client.print("up");
+    differenza = 1;
   }
   else if (req.indexOf("/gpio/down") != -1) {
     globale = 0;
